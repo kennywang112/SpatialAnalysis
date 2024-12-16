@@ -18,7 +18,7 @@ neighbours2 <- poly2nb(OA.Census, queen = FALSE)
 
 coords <- st_coordinates(st_centroid(OA.Census))
 
-par(mfrow=c(1,3)) 
+par(mfrow=c(1,1)) 
 
 plot(OA.Census, border = 'lightgrey')
 plot(OA.Census$geometry, col = 'lightgrey', border = 'white')
@@ -60,10 +60,10 @@ m.local <- local[,1] - mean(local[,1])
 signif <- 0.1
 # builds a data quadrant
 # 一個判斷全局一個判斷局部
-quadrant[m.qualification >0 & m.local>0] <- 4
-quadrant[m.qualification <0 & m.local<0] <- 1
-quadrant[m.qualification <0 & m.local>0] <- 2
-quadrant[m.qualification >0 & m.local<0] <- 3
+quadrant[m.qualification>0 & m.local>0] <- 4
+quadrant[m.qualification<0 & m.local<0] <- 1
+quadrant[m.qualification<0 & m.local>0] <- 2
+quadrant[m.qualification>0 & m.local<0] <- 3
 quadrant[local[,5]>signif] <- 0
 
 # plot in r
@@ -78,7 +78,7 @@ legend("bottomleft",legend=c("insignificant","low-low","low-high","high-low","hi
 # creates centroid and joins neighbours within 0 and x units
 coords <- st_coordinates(st_centroid(OA.Census))
 
-nb <- dnearneigh(coords,0,400) 
+nb <- dnearneigh(coords,0,800) 
 # creates listw
 nb_lw <- nb2listw(nb, style = 'B')
 
@@ -99,7 +99,6 @@ tm_shape(local_g) + tm_fill("gstat", palette = "RdBu", style = "pretty") + tm_bo
 # Getis-Ord 則是用於局部分析，用於找出高低值的集群
 # GI 首先構建鄰居，然後計算每個點的值與其鄰居的值之間的相關性，以Z值表示
 
-local_g 
 
 
 

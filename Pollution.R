@@ -121,7 +121,7 @@ extractPar(prodSumModel_Vgm)
 # 1. 定義時空範圍
 lon_range <- range(pivot_data$twd97lon) + c(-0.1, 0.1) 
 lat_range <- range(pivot_data$twd97lat) + c(-0.1, 0.1)
-time_range <- seq(as.Date("2024-02-27"), as.Date("2024-02-29"), by = "day")  # 最後三天
+time_range <- seq(as.Date("2024-02-25"), as.Date("2024-02-29"), by = "day")  # 最後三天
 
 # 2. 創建空間點
 lon_seq <- seq(lon_range[1], lon_range[2], by = 0.05) 

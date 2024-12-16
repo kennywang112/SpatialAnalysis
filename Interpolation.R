@@ -10,6 +10,7 @@ library(maptools)
 # Create a tessellated surface
 dat.pp <- as(dirichlet(as.ppp(House.Points)), "SpatialPolygons") 
 dat.pp <- as(dat.pp,"SpatialPolygons")
+House.Points <- as(House.Points, "Spatial")
 
 # Sets the projection to British National Grid
 proj4string(dat.pp) <- CRS("+init=EPSG:27700") 
@@ -94,17 +95,5 @@ tm_shape(masked_idw) +
             legend.size.show = FALSE,
             title.col = "Price Paid (£)") + 
   tm_layout(legend.position = c("left", "bottom"), legend.text.size = 1.1, legend.title.size = 1.4, frame = FALSE)
-
-library(automap)
-House.Points <- as(House.Points, "Spatial")
-## Warning: package 'automap' was built under R version 3.3.1 # this is the same grid as before
-grid <-spsample(House.Points, type = 'regular', n = 10000)
-# runs the kriging
-kriging_result = autoKrige(log(Price)~1, House.Points, grid)
-plot(kriging_result)
-
-
-
-
 
 
