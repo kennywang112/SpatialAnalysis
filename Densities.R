@@ -6,8 +6,7 @@ library(sp)
 library(raster) 
 library(adehabitatHR)
 
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")
-House.Points <- st_read("Data/Camden_house_sales/Camden_house_sales.shp")%>%as("Spatial")
+source('LoadData.R')
 
 kde.output <- kernelUD(House.Points, h="href", grid = 1000) 
 plot(kde.output)

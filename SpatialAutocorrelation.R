@@ -1,16 +1,15 @@
 library(sf)
 library(tmap)
+# 空間自相關套件
+library(spdep)
+source('LoadData.R')
 
-Census.Data <-read.csv("Data/practical_data.csv")
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")%>%st_as_sf()
-OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")
-House.Points <- st_read("Data/Camden_house_sales/Camden_house_sales.shp")%>%as("Spatial")
+House.Points <- House.Points%>%as("Spatial")
 
 tm_shape(OA.Census) + 
   tm_fill("Qualification", palette = "Reds", style = "quantile", title = "% with a Qualification") + 
   tm_borders(alpha=.4)
-# 空間自相關套件
-library(spdep)
+
 # 找出鄰近的資料點
 neighbours <- poly2nb(OA.Census, queen = TRUE)
 # Calculate the Rook's case neighbours

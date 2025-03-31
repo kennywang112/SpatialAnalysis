@@ -1,11 +1,11 @@
 library(sf)
 library(tmap)
-
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")%>%st_as_sf()
-House.Points <- st_read("Data/Camden_house_sales/Camden_house_sales.shp")%>%st_as_sf()#%>%as("Spatial")
-
 library(spatstat)
 library(maptools)
+source('LoadData.R')
+
+Output.Areas <- Output.Areas#%>%st_as_sf()
+House.Points <- House.Points%>%st_as_sf()#%>%as("Spatial")
 
 # Create a tessellated surface
 dat.pp <- as(dirichlet(as.ppp(House.Points)), "SpatialPolygons") 

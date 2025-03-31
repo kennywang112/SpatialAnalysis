@@ -1,10 +1,7 @@
 # Geographically Weighted Regression 地理加權回歸
 library(sf)
 library(tmap)
-
-Census.Data <- read.csv("Data/practical_data.csv")
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")%>%st_as_sf()
-OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")
+source('LoadData.R')
 
 # runs a linear model
 model <- lm(OA.Census$Qualification ~ OA.Census$Unemployed+OA.Census$White_British)

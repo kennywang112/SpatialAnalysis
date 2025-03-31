@@ -1,8 +1,7 @@
-library(sf)
+source('LoadData.R')
 
 # Load the output area shapefiles
 # Output.Areas<- readOGR(".", "Camden_oa11")
-Output.Areas <- st_read("./Data/Camden_oa11/Camden_oa11.shp")
 plot(st_geometry(Output.Areas))
 
 OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")

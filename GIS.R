@@ -1,17 +1,8 @@
 library(tmap)
 library(leaflet)
-library(sf)
 library(sp)
-library(tidyverse)
+source('LoadData.R')
 
-Census.Data <-read.csv("Data/practical_data.csv")
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")
-OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")%>%as("Spatial")
-OA.Census_sf <- st_as_sf(OA.Census)
-
-houses <- read.csv("Data/CamdenHouseSales15.csv")[,c(1,2,8,9)]
-House.Points <- SpatialPointsDataFrame(houses[,3:4], houses,
-                                       proj4string = CRS("+init=EPSG:27700"))
 House.Points_sf <- st_as_sf(House.Points) # 增加地理資訊後轉回sf格式
 
 pip <- st_join(House.Points_sf, OA.Census_sf) # 依照空間位置將房屋資料與人口資料合併，具體位置以及polygon範圍

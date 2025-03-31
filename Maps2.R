@@ -1,25 +1,13 @@
+library(sp)
 library(tmap)
 library(leaflet)
-library(sf)
+source('LoadData.R')
 
-Census.Data <-read.csv("practical_data.csv")
-
-Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")
-
-# OA是區域
-OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")
-
-houses <- read.csv("Data/CamdenHouseSales15.csv")
 houses <- houses[,c(1,2,8,9)]
 
 # 2D scatter plot
 plot(houses$oseast1m, houses$osnrth1m)
 
-library(sp)
-# create a House.Points SpatialPointsDataFrame
-# houses[,3:4]為座標軸
-House.Points <- SpatialPointsDataFrame(houses[,3:4], houses,
-                                      proj4string = CRS("+init=EPSG:27700"))
 tm_shape(OA.Census) + tm_borders(alpha=.4)
 # creates a coloured dot map
 tm_shape(OA.Census) + tm_borders(alpha=.4) +
