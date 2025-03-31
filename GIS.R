@@ -4,7 +4,7 @@ library(sf)
 library(sp)
 library(tidyverse)
 
-Census.Data <-read.csv("practical_data.csv")
+Census.Data <-read.csv("Data/practical_data.csv")
 Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")
 OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")%>%as("Spatial")
 OA.Census_sf <- st_as_sf(OA.Census)
