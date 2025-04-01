@@ -1,7 +1,5 @@
-library(tidyverse)
 library(tmap)
 library(leaflet)
-library(sf)
 library(sp)
 library(raster) 
 library(adehabitatHR)
@@ -28,9 +26,16 @@ tm_shape(kde, bbox = bounding_box) + tm_raster("ud")
 masked_kde <- mask(kde, Output.Areas)
 # maps the masked raster, also maps white output area boundaries
 tm_shape(masked_kde, bbox = bounding_box) + 
-  tm_raster("ud", style = "quantile", n = 100, legend.show = FALSE, palette = "YlGnBu") + 
+  tm_raster(
+    col = "ud",
+    col.scale = tm_scale_intervals(values = "brewer.yl_gn_bu", style = "quantile", n = 100),
+    col.legend.show = FALSE
+  ) + 
   tm_shape(Output.Areas) + 
-  tm_borders(alpha=.3, col = "white") +
+  tm_borders(
+    col = "white",
+    fill_alpha = 0.3
+  ) +
   tm_layout(frame = FALSE)
 
 # compute homeranges for 75%, 50%, 25% of points,
@@ -39,16 +44,20 @@ range75 <- getverticeshr(kde.output, percent = 75)
 range50 <- getverticeshr(kde.output, percent = 50) 
 range25 <- getverticeshr(kde.output, percent = 25)
 
+range75 <- st_as_sf(range75)
+range50 <- st_as_sf(range50)
+range25 <- st_as_sf(range25)
+
 # the code below creates a map of several layers using tmap
-tm_shape(Output.Areas) + 
-  tm_fill(col = "#f0f0f0") + tm_borders(alpha=.8, col = "white") + 
-  tm_shape(House.Points) + tm_dots(col = "blue") +
-  tm_shape(range75) + tm_borders(alpha=.7, col = "#fb6a4a", lwd = 2) + 
-  tm_fill(alpha=.1, col = "#fb6a4a") +
-  tm_shape(range50) + tm_borders(alpha=.7, col = "#de2d26", lwd = 2) +
-  tm_fill(alpha=.1, col = "#de2d26") +
-  tm_shape(range25) + tm_borders(alpha=.7, col = "#a50f15", lwd = 2) +
-  tm_fill(alpha=.1, col = "#a50f15") + 
+tm_shape(Output.Areas_sf) + 
+  tm_fill(col = "#f0f0f0") + tm_borders(fill_alpha=.8, col = "white") + 
+  tm_shape(House.Points_sf) + tm_dots(col = "blue") +
+  tm_shape(range75) + tm_borders(fill_alpha=.7, col = "#fb6a4a", lwd = 2) + 
+  tm_fill(fill_alpha=.1, col = "#fb6a4a") +
+  tm_shape(range50) + tm_borders(fill_alpha=.7, col = "#de2d26", lwd = 2) +
+  tm_fill(fill_alpha=.1, col = "#de2d26") +
+  tm_shape(range25) + tm_borders(fill_alpha=.7, col = "#a50f15", lwd = 2) +
+  tm_fill(fill_alpha=.1, col = "#a50f15") + 
   tm_layout(frame = FALSE)
 
 

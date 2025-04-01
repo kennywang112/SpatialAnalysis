@@ -1,56 +1,64 @@
 library(tidyverse)
+library(sp)
+library(spacetime)
+library(showtext)
+library(rworldmap)
+library(RColorBrewer)
+library(gstat)
 # https://airtw.moenv.gov.tw/cht/Query/InsValue.aspx
 data <- read_csv("Data/taiwan.csv", locale = locale(encoding = "Big5"))
 # https://data.moenv.gov.tw/dataset/detail/AQX_P_07
 station <- read_csv("Data/station.csv")
-data
 
+# creates a character vector of strings from "00" to "23"
 numeric_cols <- sprintf("%02d", 0:23)
 
+# preprocess
 full_data <- data %>%
   mutate(across(
     all_of(numeric_cols), 
     ~ {
-      # 將 "#" 替換為 NA，並轉換為數值類型
+      # replace NA with "#"
       num_col <- as.numeric(na_if(as.character(.), "#"))
-      # 計算欄位的平均值（忽略 NA）
+      # compute mean of column (ignoring NA)
       col_mean <- mean(num_col, na.rm = TRUE)
-      # 用平均值替換 NA
+      # replace NA with mean
       replace_na(num_col, col_mean)
     }
   ))
 
-full_data <- full_data %>%  # 將 `#` 替換為 NA 並轉為數字
-  rowwise() %>%  # 按行操作
-  mutate(有效平均 = mean(c_across(all_of(numeric_cols)), na.rm = TRUE)) %>% # 計算有效平均
-  ungroup()%>%
-  select(`測站`, `日期`, `測項`, `有效平均`)
-full_data
+# compute mean of row (ignoring NA)
 full_data <- full_data %>%
-  mutate(日期 = as.Date(日期, format = "%Y/%m/%d")) %>%
-  filter(日期 < as.Date("2024-02-29")) 
+  rowwise() %>%  # operate with row
+  mutate(valid_mean = mean(c_across(all_of(numeric_cols)), na.rm = TRUE)) %>%
+  ungroup() %>%
+  dplyr::select(`測站`, `日期`, `測項`, valid_mean)
+
+# filter date
+full_data <- full_data %>%
+  mutate(date = as.Date(`日期`, format = "%Y/%m/%d")) %>%
+  filter(date < as.Date("2024-02-29")) 
 
 pivot_data <- full_data %>%
   pivot_wider(
-    names_from = 測項,      # 將 `測項` 的值變成欄位名稱
-    values_from = 有效平均  # 將 `有效平均` 作為欄位值
+    names_from = `測項`, # convert to column
+    values_from = valid_mean  # compute to value
   )
-pivot_data$測站%>%unique()
+pivot_data$`測站` %>% unique()
 
-get_station <- station%>%filter(sitename %in% pivot_data$`測站`)
-pivot_data <- pivot_data%>%
-  left_join(get_station, by = c("測站" = "sitename"))%>%
-  select(`測站`, `日期`, PM10, twd97lon, twd97lat)%>%
+# get station which is in pivot_data
+get_station <- station %>% filter(sitename %in% pivot_data$`測站`)
+# join station data
+pivot_data <- pivot_data %>%
+  left_join(get_station, by = c("測站" = "sitename")) %>%
+  dplyr::select(`測站`, `日期`, PM10, twd97lon, twd97lat) %>%
   mutate(
     PM10 = ifelse(is.nan(PM10), 0, PM10),
   )
-pivot_data
 
-select_lst <- c("基隆", "士林", "大同", "中山",  "古亭", "松山", "陽明",  "萬華", "三重", "土城")
+# select_lst <- c("基隆", "士林", "大同", "中山",  "古亭", "松山", "陽明",  "萬華", "三重", "土城")
 # pivot_data <- pivot_data%>%filter(測站 %in% select_lst)
 
-library(sp)
-library(spacetime)
 # Create a SpatialPoints object
 spatial_points <- SpatialPoints(pivot_data[, c("twd97lon", "twd97lat")])
 
@@ -58,23 +66,22 @@ names(pivot_data)[1] <- "station"
 names(pivot_data)[2] <- "date"
 
 pivot_data$date <- as.Date(pivot_data$date)
-pivot_data <- as.data.frame(pivot_data) # stConstruct 需要 data.frame 格式
 
 STIDF_daily <- stConstruct(
-  x = pivot_data,
+  x = as.data.frame(pivot_data),
   space = c("twd97lon", "twd97lat"),
   time = "date",
-  SpatialObj=spatial_points
+  SpatialObj = spatial_points
 )
 
 STFDF_daily <- as(STIDF_daily, "STFDF")
-STFDF_daily@sp@proj4string <- CRS("+init=epsg:3826") # 座標系定義
+STFDF_daily@sp@proj4string <- CRS("+init=epsg:3826") # define coordinate
 
-library(showtext)
-pivot_data$station%>%unique()
-font_add(family = "PingFang", regular = "/System/Library/Fonts/Supplemental/PingFang.ttc")
+pivot_data$station %>% unique()
+# font_add(family = "PingFang", regular = "/System/Library/Fonts/Supplemental/PingFang.ttc")
 showtext_auto()
 time_range <- "2024-01-01::2024-02-29" # 時間範圍
+# plot daily PM10
 stplot(
   STFDF_daily[, time_range, "PM10"],  # 時間範圍和變量選擇
   mode = "xt",                      # xt 模式：時間-站點
@@ -86,12 +93,9 @@ stplot(
 )
 stplot(STFDF_daily[, "2024-01-01::2024-01-30" , "PM10"], mode = "ts")
 
-library(rworldmap)
 world <- getMap(resolution="low")
-library(RColorBrewer)
 # stplot(STFDF_daily[, time_range, "PM10"],
 #        col.regions=brewer.pal(6,"Spectral"), cuts=6, sp.layout=list(world,first=TRUE))
-library(gstat)
 # STIDF_daily@sp <- spTransform(STIDF_daily@sp, CRS("+init=epsg:3826")) # 以公尺為單位
 
 # 計算時間、空間半變異數
@@ -112,7 +116,6 @@ pars.l <- c(sill.s = 0, range.s = 10, nugget.s = 0,sill.t = 0, range.t = 1,
             nugget.t = 0, sill.st = 0, range.st = 10, nugget.st = 0, anis = 0, k = 0.01)
 # 模型擬合
 prodSumModel_Vgm <- fit.StVariogram(var, prodSumModel, lower = pars.l)
-
 
 attr(prodSumModel_Vgm, "MSE")
 
@@ -142,7 +145,7 @@ pr
 stplot(pr)
 
 predicted_values <- as.data.frame(pr) 
-slice_27 <- predicted_values%>%filter(time=='2024-02-27')
+slice_27 <- predicted_values %>% filter(time=='2024-02-27')
 
 taiwan_map <- map("worldHires", "Taiwan", plot = FALSE, fill = TRUE)
 world_clean <- world[!is.na(world$NAME), ]  # 去除 NAME 為 NA 的行
@@ -166,9 +169,7 @@ ggplot() +
     title = "PM10 pred",
     x = "long",
     y = "lat",
-    fill = "PM10"
-  ) +
+    fill = "PM10") +
   coord_sf(
     xlim = range(slice_27$twd97lon), 
-    ylim = range(slice_27$twd97lat)
-  )
+    ylim = range(slice_27$twd97lat))

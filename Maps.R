@@ -1,3 +1,6 @@
+library(tmap)
+library(leaflet)
+library(RColorBrewer)
 source('LoadData.R')
 
 # Load the output area shapefiles
@@ -9,17 +12,13 @@ OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")
 # proj4string(OA.Census) <- CRS("+init=EPSG:27700")
 st_crs(OA.Census) <- 27700
 
-library(tmap)
-library(leaflet)
-
 # this will prodyce a quick map of our qualification variable
 qtm(OA.Census, fill = "Qualification")
 
 # Creates a simple choropleth map of our qualification variable
 tm_shape(OA.Census) + tm_fill("Qualification")
 
-library(RColorBrewer)
-display.brewer.all()
+# display.brewer.all()
 # setting a colour palette
 tm_shape(OA.Census) + tm_fill("Qualification", palette = "-Greens")
 # changing the intervals

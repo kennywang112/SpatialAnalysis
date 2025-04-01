@@ -1,3 +1,5 @@
+library(vioplot)
+library(reshape2)
 source('LoadData.R')
 
 # write.csv(Census.Data, "practical_data.csv", row.names=F)
@@ -9,7 +11,6 @@ median(Census.Data$Unemployed)
 range(Census.Data$Unemployed)
 names(Census.Data)
 
-library(vioplot)
 vioplot(Census.Data$Unemployed, Census.Data$Qualification, 
         Census.Data$White_British, Census.Data$Low_Occupancy, ylim=c(0,100),
         col = "dodgerblue", rectCol="dodgerblue3", colMed="dodgerblue4", 
@@ -27,7 +28,6 @@ symbols(Census.Data$Unemployed, Census.Data$Qualification,
 cor(Census.Data$Unemployed, Census.Data$Qualification)
 # Runs a Pearson's correlation
 cor.test(Census.Data$Unemployed, Census.Data$Qualification)
-
 # Runs a Spearman's correlation
 cor.test(Census.Data$Unemployed, Census.Data$Qualification, method="spearman")
 
@@ -37,7 +37,6 @@ data1 <- Census.Data[, 2:5]
 cor(data1)
 round(cor(data1), 2)
 
-library(reshape2)
 qplot(x=Var1, y=Var2, data=melt(cor(data1, use="p")), fill=value, geom="tile") +
   scale_fill_gradient2(limits=c(-1, 1))
 

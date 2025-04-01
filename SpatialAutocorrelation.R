@@ -1,31 +1,33 @@
-library(sf)
 library(tmap)
 # 空間自相關套件
 library(spdep)
 source('LoadData.R')
 
-House.Points <- House.Points%>%as("Spatial")
-
-tm_shape(OA.Census) + 
-  tm_fill("Qualification", palette = "Reds", style = "quantile", title = "% with a Qualification") + 
-  tm_borders(alpha=.4)
+# House.Points <- House.Points%>%as("Spatial")
+tm_shape(OA.Census_sf) + 
+  tm_fill(
+    col = "Qualification",
+    fill.scale = tm_scale_intervals(values = "brewer.reds", style = "quantile"),
+    fill.legend = tm_legend(title = "% with a Qualification")
+  ) + 
+  tm_borders(fill_alpha = 0.4)
 
 # 找出鄰近的資料點
 neighbours <- poly2nb(OA.Census, queen = TRUE)
 # Calculate the Rook's case neighbours
 neighbours2 <- poly2nb(OA.Census, queen = FALSE)
 
-coords <- st_coordinates(st_centroid(OA.Census))
+coords <- st_coordinates(st_centroid(OA.Census_sf))
 
 par(mfrow=c(1,1)) 
 
-plot(OA.Census, border = 'lightgrey')
-plot(OA.Census$geometry, col = 'lightgrey', border = 'white')
+plot(OA.Census_sf, border = 'lightgrey')
+plot(OA.Census_sf$geometry, col = 'lightgrey', border = 'white')
 plot(neighbours, coords, add=TRUE, col='red')
 
 # compares different types of neighbours
-plot(OA.Census, border = 'lightgrey')
-plot(OA.Census$geometry, col = 'lightgrey', border = 'white')
+plot(OA.Census_sf, border = 'lightgrey')
+plot(OA.Census_sf$geometry, col = 'lightgrey', border = 'white')
 plot(neighbours, coords, add=TRUE, col='red') 
 plot(neighbours2, coords, add=TRUE, col='blue')
 
@@ -45,12 +47,18 @@ local <- localmoran(x = OA.Census$Qualification, listw = nb2listw(neighbours2, s
 # 合併人口資質以及該地區的局部moran index
 moran.map <- cbind(OA.Census, local)
 # maps the results
-tm_shape(moran.map) + tm_fill(col = "Ii", style = "quantile", title = "local moran statistic")
+moran.map <- st_as_sf(moran.map)
+tm_shape(moran.map) + 
+  tm_fill(
+    col = "Ii", #palette = "RdYlGn",
+    fill.scale = tm_scale_intervals(style = "quantile", midpoint = NA),
+    fill.legend = tm_legend(title = "Local Moran Statistic")
+  )
 
 ### to create LISA cluster map ###
 # Local Indicators of Spatial Association (LISA) 局部空間自相關
 # 先建立佔位符
-quadrant <- vector(mode="numeric",length=nrow(local))
+quadrant <- vector(mode="numeric", length=nrow(local))
 # centers the variable of interest around its mean
 m.qualification <- OA.Census$Qualification - mean(OA.Census$Qualification)
 # centers the local Moran's around the mean
@@ -67,32 +75,40 @@ quadrant[local[,5]>signif] <- 0
 
 # plot in r
 brks <- c(0,1,2,3,4)
-colors <- c("white","blue",rgb(0,0,1,alpha=0.4),rgb(1,0,0,alpha=0.4),"red")
-plot(OA.Census['OA11CD'],border="lightgray",col=colors[findInterval(quadrant,brks,all.inside=FALSE)])
+colors <- c("white", "blue", rgb(0,0,1, alpha=0.4), rgb(1,0,0, alpha=0.4), "red")
+plot(OA.Census['OA11CD'], border="lightgray", col=colors[findInterval(quadrant, brks, all.inside=FALSE)])
 # box()
-legend("bottomleft",legend=c("insignificant","low-low","low-high","high-low","high-high"),
-       fill=colors,bty="n")
+legend("bottomleft", 
+       legend=c("insignificant","low-low","low-high","high-low","high-high"),
+       fill=colors, bty="n")
 
 ## Getis-Ord GI
 # creates centroid and joins neighbours within 0 and x units
-coords <- st_coordinates(st_centroid(OA.Census))
+coords <- st_coordinates(st_centroid(OA.Census_sf))
 
-nb <- dnearneigh(coords,0,800) 
+nb <- dnearneigh(coords, 0, 800) 
 # creates listw
 nb_lw <- nb2listw(nb, style = 'B')
 
 # plot the data and neighbours
 plot(OA.Census['White_British'], border = 'lightgrey')
 
-plot(OA.Census$geometry, col = 'lightgrey', border = 'white')
-plot(nb, coords, add=TRUE, col = 'green')
+plot(OA.Census_sf$geometry, col = 'lightgrey', border = 'white')
+plot(nb, coords, add = TRUE, col = 'green')
 
 # compute Getis-Ord Gi statistic
 local_g <- localG(OA.Census$Qualification, nb_lw)
 local_g <- cbind(OA.Census, as.matrix(local_g))
 names(local_g)[6] <- "gstat"
 # map the results
-tm_shape(local_g) + tm_fill("gstat", palette = "RdBu", style = "pretty") + tm_borders(alpha=.4)
+local_g <- st_as_sf(local_g)
+tm_shape(local_g) + 
+  tm_fill(
+    col = "gstat", #palette = "RdBu",
+    fill.scale = tm_scale_intervals(values = "brewer.rd_bu", style = "pretty"),
+    fill.legend = tm_legend(title = "Gi* Statistic")
+  ) + 
+  tm_borders(fill_alpha = 0.4)
 
 # Moran's I 可用於全局或局部分析，局部表示為LISA
 # Getis-Ord 則是用於局部分析，用於找出高低值的集群

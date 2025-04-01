@@ -1,15 +1,14 @@
 ### Order
 
 1.  Basic.R
-2.  Relationships.R
-3.  Maps.R
-4.  Maps2.R
-5.  GIS.R
-6.  Densities.R
-7.  SpatialAutocorrelation.R
-8.  GWR.R
-9.  Interpolation.R
-10. Pollution.R
+2.  Maps.R
+3.  Maps2.R
+4.  GIS.R
+5.  Densities.R
+6.  SpatialAutocorrelation.R
+7.  GWR.R
+8.  Interpolation.R
+9.  Pollution.R
 
 ### Code From:
 

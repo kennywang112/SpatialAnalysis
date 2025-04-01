@@ -24,6 +24,7 @@ Ethnicity%>%
 
 
 Output.Areas <- st_read("Data/Camden_oa11/Camden_oa11.shp")
+Output.Areas_sf <- st_as_sf(Output.Areas)
 OA.Census <- merge(Output.Areas, Census.Data, by.x="OA11CD", by.y="OA")%>%as("Spatial")
 OA.Census_sf <- st_as_sf(OA.Census)
 
@@ -32,3 +33,4 @@ houses <- read.csv("Data/CamdenHouseSales15.csv")[,c(1,2,8,9)]
 # houses[,3:4]為座標軸
 House.Points <- SpatialPointsDataFrame(houses[,3:4], houses,
                                        proj4string = CRS("+init=EPSG:27700"))
+House.Points_sf <- st_as_sf(House.Points)
